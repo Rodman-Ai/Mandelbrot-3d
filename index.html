@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Mandelbrot 3D Explorer</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div id="score-panel">
+      <div class="hud-label">DEPTH</div>
+      <div id="depth-display">0</div>
+      <div class="hud-label" style="margin-top:8px">SCORE</div>
+      <div id="score-display">0</div>
+    </div>
+    <div id="coords-panel">
+      <div class="hud-label">POSITION</div>
+      <div id="cx-display">Re: -0.5000</div>
+      <div id="cy-display">Im: 0.0000</div>
+      <div class="hud-label" style="margin-top:4px">ZOOM</div>
+      <div id="zoom-display">1×</div>
+    </div>
+  </div>
+
+  <!-- Controls overlay -->
+  <div id="controls-panel">
+    <div class="ctrl-row">
+      <label>Iterations</label>
+      <input type="range" id="iter-slider" min="32" max="512" value="128" step="16" />
+      <span id="iter-val">128</span>
+    </div>
+    <div class="ctrl-row">
+      <label>Height</label>
+      <input type="range" id="height-slider" min="0" max="100" value="40" />
+      <span id="height-val">40</span>
+    </div>
+    <div class="ctrl-row">
+      <label>Color</label>
+      <select id="color-mode">
+        <option value="0">Neon</option>
+        <option value="1">Fire</option>
+        <option value="2">Ice</option>
+        <option value="3">Gold</option>
+        <option value="4">Psychedelic</option>
+      </select>
+    </div>
+    <div class="ctrl-row">
+      <button id="reset-btn">Reset View</button>
+      <button id="animate-btn">Animate Colors</button>
+    </div>
+  </div>
+
+  <!-- Touch hints -->
+  <div id="hint-bar">
+    <span class="hint">Drag: orbit</span>
+    <span class="hint">Double-tap/click: zoom in</span>
+    <span class="hint">Pinch/scroll: zoom fractal</span>
+    <span class="hint">Right-drag: pan</span>
+  </div>
+
+  <!-- Trophy notification -->
+  <div id="trophy" class="hidden">
+    <div id="trophy-text"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
