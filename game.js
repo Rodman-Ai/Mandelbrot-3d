@@ -1,4 +1,5 @@
-'use strict';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 // ─────────────────────────────────────────────
 //  Shaders
@@ -215,7 +216,6 @@ const hmTarget = new THREE.WebGLRenderTarget(HM_SIZE, HM_SIZE, {
   minFilter: THREE.LinearFilter,
   magFilter: THREE.LinearFilter,
   format: THREE.RGBAFormat,
-  type: THREE.FloatType,
 });
 
 const hmScene = new THREE.Scene();
