@@ -1,8 +1,5 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass }     from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  GLSL – shared fractal kernel (embedded in both shaders)
@@ -99,6 +96,7 @@ uniform float uPower;
 uniform int   uColorMode;
 uniform float uTime, uColorSpeed, uColorBands;
 uniform float uLighting;   // 0–1
+uniform float uBloom;      // 0–1 in-shader glow
 
 varying vec2  vUv;
 varying float vT;
@@ -122,16 +120,6 @@ vec3 getColor(float t) {
   return vec3(t, t, t);  // Mono
 }
 
-// ── estimate surface normal from escape-time gradient ───────────────────────
-vec3 estimateNormal() {
-  float e = 0.002 / uZoom;
-  float tR = computeFractal(vUv + vec2(e,0.), uCx, uCy, uZoom, uMaxIter, uFractalType, uJuliaC, uPower);
-  float tL = computeFractal(vUv - vec2(e,0.), uCx, uCy, uZoom, uMaxIter, uFractalType, uJuliaC, uPower);
-  float tU = computeFractal(vUv + vec2(0.,e), uCx, uCy, uZoom, uMaxIter, uFractalType, uJuliaC, uPower);
-  float tD = computeFractal(vUv - vec2(0.,e), uCx, uCy, uZoom, uMaxIter, uFractalType, uJuliaC, uPower);
-  return normalize(vec3(tL - tR, tD - tU, 0.3));
-}
-
 void main() {
   float t = computeFractal(vUv, uCx, uCy, uZoom, uMaxIter, uFractalType, uJuliaC, uPower);
 
@@ -142,17 +130,25 @@ void main() {
 
   vec3 col = getColor(t * uColorBands);
 
-  // Normal-map lighting (Phase 2)
+  // Normal-map lighting using free hardware derivatives (no extra fractal calls)
   if (uLighting > 0.01) {
-    vec3  N     = estimateNormal();
-    vec3  L     = normalize(vec3(1.0, 2.0, 1.0));
-    float diff  = max(dot(N, L), 0.0);
-    float spec  = pow(max(dot(reflect(-L, N), vec3(0.,0.,1.)), 0.0), 24.0);
-    vec3  lit   = col * (0.35 + 0.65 * diff) + vec3(spec * 0.4);
-    col = mix(col, lit, uLighting);
+    float dx = dFdx(t);
+    float dy = dFdy(t);
+    vec3  N    = normalize(vec3(-dx * 40.0, 1.0, -dy * 40.0));
+    vec3  L    = normalize(vec3(1.0, 2.0, 0.8));
+    float diff = max(dot(N, L), 0.0);
+    float spec = pow(max(dot(reflect(-L, N), vec3(0.,1.,0.)), 0.0), 32.0);
+    col = col * (0.4 + 0.6 * diff) + vec3(spec * 0.35);
+    col = mix(getColor(t * uColorBands), clamp(col, 0.0, 1.0), uLighting);
   }
 
-  gl_FragColor = vec4(col, 1.0);
+  // Simple in-shader bloom: boost bright bands
+  if (uBloom > 0.01) {
+    float lum = dot(col, vec3(0.299, 0.587, 0.114));
+    col += col * lum * uBloom * 2.5;
+  }
+
+  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
 `;
 
@@ -261,6 +257,7 @@ const planeMat = new THREE.ShaderMaterial({
     uColorSpeed: { value: 0.0 },
     uColorBands: { value: state.colorBands },
     uLighting:   { value: state.lighting },
+    uBloom:      { value: 0.0 },
   },
   side: THREE.DoubleSide,
 });
@@ -283,14 +280,6 @@ scene.add(planeMesh);
   })));
 }
 
-// ── Bloom (Phase 4) ───────────────────────────────────────────────────────────
-const composer = new EffectComposer(renderer);
-composer.addPass(new RenderPass(scene, camera));
-const bloomPass = new UnrealBloomPass(
-  new THREE.Vector2(window.innerWidth, window.innerHeight),
-  0, 0.6, 0.85   // strength=0 (off by default), radius, threshold
-);
-composer.addPass(bloomPass);
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Helpers
@@ -308,7 +297,7 @@ function syncUniforms() {
   u.uColorMode.value  = state.colorMode;
   u.uColorBands.value = state.colorBands;
   u.uLighting.value   = state.lighting;
-  bloomPass.strength  = state.bloomStrength;
+  u.uBloom.value      = state.bloomStrength;
 }
 
 function updateHUD() {
@@ -772,8 +761,6 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-  composer.setSize(window.innerWidth, window.innerHeight);
-  bloomPass.setSize(window.innerWidth, window.innerHeight);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -793,13 +780,7 @@ function animate() {
   }
 
   controls.update();
-
-  // Use bloom composer when bloom is active, plain renderer otherwise
-  if (state.bloomStrength > 0.01) {
-    composer.render();
-  } else {
-    renderer.render(scene, camera);
-  }
+  renderer.render(scene, camera);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
