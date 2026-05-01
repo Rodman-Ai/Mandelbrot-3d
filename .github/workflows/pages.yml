@@ -6,30 +6,32 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: github-pages
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Deploy to gh-pages branch
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          # Copy site files to a temp dir
-          mkdir -p /tmp/site
-          cp index.html styles.css game.js README.md /tmp/site/
-          # Switch to (or create) gh-pages branch
-          git fetch origin gh-pages 2>/dev/null || true
-          git checkout --orphan gh-pages-deploy
-          git rm -rf . --quiet
-          cp /tmp/site/* .
-          git add index.html styles.css game.js README.md
-          git commit -m "Deploy to GitHub Pages [skip ci]"
-          git push origin HEAD:gh-pages --force
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
