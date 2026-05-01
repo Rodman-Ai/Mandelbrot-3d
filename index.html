@@ -20,14 +20,41 @@
     <div id="coords-panel">
       <div class="hud-label">POSITION</div>
       <div id="cx-display">Re: -0.5000</div>
-      <div id="cy-display">Im: 0.0000</div>
+      <div id="cy-display">Im:  0.0000</div>
       <div class="hud-label" style="margin-top:4px">ZOOM</div>
       <div id="zoom-display">1×</div>
     </div>
   </div>
 
-  <!-- Controls overlay -->
+  <!-- Toolbar (top-right icon buttons) -->
+  <div id="toolbar">
+    <button id="screenshot-btn" class="icon-btn" title="Save PNG (P)">📸</button>
+    <button id="fullscreen-btn" class="icon-btn" title="Fullscreen (F)">⛶</button>
+    <button id="share-btn"      class="icon-btn" title="Copy share link">🔗</button>
+  </div>
+
+  <!-- Controls Panel -->
   <div id="controls-panel">
+    <div class="ctrl-row">
+      <label>Fractal</label>
+      <select id="fractal-type">
+        <option value="0">Mandelbrot</option>
+        <option value="1">Julia Set</option>
+        <option value="2">Burning Ship</option>
+        <option value="3">Tricorn</option>
+        <option value="4">Newton</option>
+        <option value="5">Multibrot</option>
+      </select>
+    </div>
+    <div class="ctrl-row" id="power-row" style="display:none">
+      <label>Power</label>
+      <input type="range" id="power-slider" min="2" max="8" value="2" step="1" />
+      <span id="power-val">2</span>
+    </div>
+    <div class="ctrl-row" id="julia-row" style="display:none">
+      <label>Julia C</label>
+      <span id="julia-c-display" class="mono-val">click fractal</span>
+    </div>
     <div class="ctrl-row">
       <label>Iterations</label>
       <input type="range" id="iter-slider" min="32" max="512" value="128" step="16" />
@@ -35,7 +62,7 @@
     </div>
     <div class="ctrl-row">
       <label>Height</label>
-      <input type="range" id="height-slider" min="0" max="100" value="40" />
+      <input type="range" id="height-slider" min="0" max="120" value="40" />
       <span id="height-val">40</span>
     </div>
     <div class="ctrl-row">
@@ -46,26 +73,70 @@
         <option value="2">Ice</option>
         <option value="3">Gold</option>
         <option value="4">Psychedelic</option>
+        <option value="5">Viridis</option>
+        <option value="6">Inferno</option>
+        <option value="7">Ocean</option>
+        <option value="8">Forest</option>
+        <option value="9">Mono</option>
       </select>
     </div>
     <div class="ctrl-row">
-      <button id="reset-btn">Reset View</button>
-      <button id="animate-btn">Animate Colors</button>
+      <label>Bands</label>
+      <input type="range" id="bands-slider" min="0.5" max="6" value="2" step="0.25" />
+      <span id="bands-val">2.0</span>
+    </div>
+    <div class="ctrl-row">
+      <label>Lighting</label>
+      <input type="range" id="light-slider" min="0" max="100" value="60" />
+      <span id="light-val">60</span>
+    </div>
+    <div class="ctrl-row">
+      <label>Bloom</label>
+      <input type="range" id="bloom-slider" min="0" max="100" value="0" />
+      <span id="bloom-val">0</span>
+    </div>
+    <div class="ctrl-row">
+      <button id="reset-btn">Reset</button>
+      <button id="animate-btn">Anim Colors</button>
+    </div>
+    <div class="ctrl-row">
+      <button id="tour-btn">Auto Tour</button>
+      <button id="wireframe-btn">Wireframe</button>
     </div>
   </div>
 
-  <!-- Touch hints -->
-  <div id="hint-bar">
-    <span class="hint">Drag: orbit</span>
-    <span class="hint">Double-tap/click: zoom in</span>
-    <span class="hint">Pinch/scroll: zoom fractal</span>
-    <span class="hint">Right-drag: pan</span>
+  <!-- Jump-To locations (Phase 5) -->
+  <div id="locations-panel">
+    <div class="hud-label" style="margin-bottom:6px;letter-spacing:2px">JUMP TO</div>
+    <div id="loc-list"></div>
   </div>
 
-  <!-- Trophy notification -->
+  <!-- Zoom History -->
+  <div id="history-bar">
+    <button id="hist-back" class="hist-btn" title="Back (Backspace)" disabled>◀</button>
+    <button id="hist-fwd"  class="hist-btn" title="Forward" disabled>▶</button>
+  </div>
+
+  <!-- Screenshot gallery toggle -->
+  <button id="gallery-toggle" class="icon-btn" title="Gallery">🖼</button>
+  <div id="gallery" class="hidden"></div>
+
+  <!-- Hint Bar -->
+  <div id="hint-bar">
+    <span class="hint">Drag: orbit</span>
+    <span class="hint">Dbl-click/tap: zoom in</span>
+    <span class="hint">Scroll/pinch: zoom</span>
+    <span class="hint">WASD/arrows: pan</span>
+    <span class="hint">Click (Julia mode): set C</span>
+  </div>
+
+  <!-- Trophy -->
   <div id="trophy" class="hidden">
     <div id="trophy-text"></div>
   </div>
+
+  <!-- Share toast -->
+  <div id="share-toast" class="hidden">Link copied!</div>
 
   <script type="importmap">
   {
