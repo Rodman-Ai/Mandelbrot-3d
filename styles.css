@@ -301,6 +301,19 @@ body {
 }
 #share-toast.hidden { display: none; }
 
+/* ── Version ─────────────────────────────────────────────────── */
+#version {
+  position: fixed;
+  bottom: 14px;
+  right: 14px;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: rgba(0,255,200,.25);
+  pointer-events: none;
+  z-index: 10;
+  font-family: 'Courier New', monospace;
+}
+
 /* ── Mobile ──────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   #controls-panel { right: 4px; top: 4px; width: 200px; padding: 8px 10px; }

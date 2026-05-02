@@ -43,7 +43,7 @@ float computeFractal(vec2 uv, float cx, float cy, float zoom,
     } else if (ftype == 5) {                    // Multibrot  z^p + c
       // Compute z^p in polar form
       float r   = sqrt(zr2 + zi2);
-      float ang = atan(zi, zr);
+      float ang = (mag2 < 1e-20) ? 0.0 : atan(zi, zr);
       float rp  = pow(r, power);
       float ap  = ang * power;
       nr = rp*cos(ap)+cr; ni = rp*sin(ap)+ci;
@@ -178,7 +178,7 @@ const state = {
   juliaC: { x: -0.7269, y: 0.1889 },
   power: 2,
   animateColors: false, colorSpeed: 0.0, colorBands: 2.0,
-  lighting: 0.6,
+  lighting: 0.0,
   bloomStrength: 0.0,
   wireframe: false,
   score: 0, depth: 0, time: 0,
@@ -228,7 +228,7 @@ const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerH
 camera.position.set(0, 3.2, 2.4);
 camera.lookAt(0, 0, 0);
 
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping  = true;
 controls.dampingFactor  = 0.08;
 controls.minDistance    = 0.3;
@@ -259,6 +259,7 @@ const planeMat = new THREE.ShaderMaterial({
     uLighting:   { value: state.lighting },
     uBloom:      { value: 0.0 },
   },
+  extensions: { derivatives: true },
   side: THREE.DoubleSide,
 });
 
